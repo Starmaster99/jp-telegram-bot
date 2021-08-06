@@ -1,9 +1,14 @@
 # оставь надежду всяк сюда входящий
 
-
+import os
 import telebot
 
-bot = telebot.TeleBot('')  # sorry :P
+from dotenv import load_dotenv
+
+load_dotenv()
+
+KEY = os.getenv('API_KEY')
+bot = telebot.TeleBot(KEY)
 
 
 @bot.message_handler(commands=['hello'])
