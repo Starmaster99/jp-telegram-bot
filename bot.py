@@ -25,7 +25,7 @@ def greet(message):
     logging.info(f'{message.from_user.username} typed /hello')
 
 
-@bot.message_handler(commands=['commands'])
+@bot.message_handler(commands=['commands', 'start'])
 def helpme(message):
     bot.send_message(message.chat.id, '`/commands - показывает весь список доступных команд\n`'
                                       '`/info - обо мне`\n'
@@ -53,12 +53,16 @@ def dice(message):
 
 @bot.message_handler(commands=['8ball'])
 def eightball(message):
-    randomlist = ['Да.', 'Нет.']
+    randomlist = ['говорит "да"', 'уверен в правоте этой фразы', 'не сомневается в истинне', 'уверяет тебя в правде',
+                  'не уверен в правильности', 'говорит "скорее всего"', 'почти уверен', 'не до конца уверен',
+                  'не знает', 'просит повторить', 'не может предсказать', 'не понимает вопроса',
+                  'говорит "нет"', 'сообщает "лучше тебе не знать"', 'уверен в ответе "нет"', 'говорит о знаках, и '
+                                                                                              'они указывают на "нет"']
     randomphrase = random.choice(randomlist)
     bot.reply_to(message, 'О, великий шар предсказаний! Открой нам глаза и покажи истинну!\n'
                           '_Минако смотрит в шар_\n'
-                          f'Ответом на твой вопрос является "{randomphrase}"', parse_mode='MARKDOWN')
-    logging.info(f'/8ball: {message.from_user.username} got "{randomphrase}" phrase.')
+                          f'Шар {randomphrase}.', parse_mode='MARKDOWN')
+    logging.info(f'/8ball: {message.from_user.username} typed {message.text} and got "{randomphrase}" phrase.')
 
 
 bot.polling()
