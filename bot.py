@@ -7,6 +7,7 @@ import logging
 import telebot
 
 from dotenv import load_dotenv
+from googlesearch import search
 
 load_dotenv()
 
@@ -16,7 +17,7 @@ logging.basicConfig(filename='log.txt', level=logging.INFO,
 KEY = os.getenv('API_KEY')
 bot = telebot.TeleBot(KEY)
 
-logging.info('Starting new session')
+logging.info('\n<---+--->\nStarting new session')
 
 
 @bot.message_handler(commands=['hello'])
@@ -31,7 +32,8 @@ def helpme(message):
                                       '`/info - обо мне`\n'
                                       '`/hello - здоровается с написавшим`\n'
                                       '`/dice - генератор случайных чисел (или D100)`\n'
-                                      '`/8ball - шар предсказаний (alpha)`', parse_mode="MARKDOWN")
+                                      '`/8ball - шар предсказаний`\n'
+                                      '`/search - ищет информацию без помощи браузера`', parse_mode="MARKDOWN")
     logging.info(f'{message.from_user.username} typed /commands')
 
 
@@ -63,6 +65,19 @@ def eightball(message):
                           '_Минако смотрит в шар_\n'
                           f'Шар {randomphrase}.', parse_mode='MARKDOWN')
     logging.info(f'/8ball: {message.from_user.username} typed {message.text} and got "{randomphrase}" phrase.')
+
+
+@bot.message_handler(commands=['search'])
+def search_info(message):
+    searchres = ""
+    query = message.text
+    for searchres in search(query, tld='com', lang='ru', num=1, stop=1):
+        searchres = str(searchres)                                      # я понятия не имею что я имел в виду
+    bot.reply_to(message, 'Эта ссылка должна тебе помочь. Когда-нибудь я устану искать за вас информацию...\n'
+                          f'{searchres}')
+    logging.info(f'/search: {message.from_user.username} tried to find {message.text}')
+    # работает
+    # и на том спасибо
 
 
 bot.polling()
