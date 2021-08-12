@@ -8,16 +8,29 @@ import telebot
 
 from dotenv import load_dotenv
 from googlesearch import search
+from telebot import types
 
 load_dotenv()
 
 logging.basicConfig(filename='log.txt', level=logging.INFO,
-                    format='%(asctime)s : %(levelname)s ::: %(message)s')
+                    format='%(asctime)s : %(levelname)s ::: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+logging.Formatter(fmt='%(asctime)s', )   # мне нравятся логи без миллисекунд
 
 KEY = os.getenv('API_KEY')
 bot = telebot.TeleBot(KEY)
 
-logging.info('\n<---+--->\nStarting new session')
+logging.info('<---+--->\nStarting new session')
+
+
+@bot.message_handler(commands=['start'])
+def start(message):
+    bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name} {message.from_user.last_name}!\n'
+                                      'Я - Минако Матсушима, ученица старшей школы. Я учу русский язык уже на '
+                                      'протяжении пяти лет. Хоть его я знаю плохо, но упорно стараюсь и учу '
+                                      'его каждый день, поэтому некоторые мои реплики могут быть неправильными '
+                                      'или некорректными. А ещё я иногда веду себя как робот. Набери `/commands` '
+                                      'и всё поймёшь. Да, и не пиши мне ночью. Я сплю.', parse_mode="MARKDOWN")
+    logging.info(f'/start: New user - {message.from_user.username}')
 
 
 @bot.message_handler(commands=['hello'])
@@ -26,7 +39,7 @@ def greet(message):
     logging.info(f'{message.from_user.username} typed /hello')
 
 
-@bot.message_handler(commands=['commands', 'start'])
+@bot.message_handler(commands=['commands'])
 def helpme(message):
     bot.send_message(message.chat.id, '`/commands - показывает весь список доступных команд\n`'
                                       '`/info - обо мне`\n'
@@ -48,6 +61,7 @@ def about(message):
 
 @bot.message_handler(commands=['dice'])
 def dice(message):
+
     dicenum = str(random.randint(0, 100))
     bot.send_message(message.chat.id, f'Ты кинул кубик и тебе выпало число под номером {dicenum}!')
     logging.info(f'/dice: {message.from_user.username} got {dicenum}.')
@@ -69,15 +83,17 @@ def eightball(message):
 
 @bot.message_handler(commands=['search'])
 def search_info(message):
-    searchres = ""
+    searchres = ""                                                          # без этой строчки pycharm ругается
     query = message.text
-    for searchres in search(query, tld='com', lang='ru', num=1, stop=1):
-        searchres = str(searchres)                                      # я понятия не имею что я имел в виду
+    markup = types.InlineKeyboardMarkup()                                   # инициализация кнопки снизу
+    markup.add(types.InlineKeyboardButton('⌨ Загуглить самостоятельно', url='google.com'))
+    for searchres in search(query, tld='com', lang='ru', num=1, stop=1):    # без этих двух строчек
+        searchres = str(searchres)                                          # оно не работает
     bot.reply_to(message, 'Эта ссылка должна тебе помочь. Когда-нибудь я устану искать за вас информацию...\n'
-                          f'{searchres}')
+                          f'{searchres}', reply_markup=markup)              # кнопка перехода на гугл
     logging.info(f'/search: {message.from_user.username} tried to find {message.text}')
     # работает
     # и на том спасибо
 
 
-bot.polling()
+bot.polling(none_stop=True)
