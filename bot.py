@@ -14,7 +14,6 @@ load_dotenv()
 
 logging.basicConfig(filename='log.txt', level=logging.INFO,
                     format='%(asctime)s : %(levelname)s ::: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-logging.Formatter(fmt='%(asctime)s', )   # мне нравятся логи без миллисекунд
 
 KEY = os.getenv('API_KEY')
 bot = telebot.TeleBot(KEY)
@@ -24,13 +23,23 @@ logging.info('<---+--->\nStarting new session')
 
 @bot.message_handler(commands=['start'])
 def start(message):
+    # todo: ReplyKeyboard
     bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name} {message.from_user.last_name}!\n'
                                       'Я - Минако Матсушима, ученица старшей школы. Я учу русский язык уже на '
                                       'протяжении пяти лет. Хоть его я знаю плохо, но упорно стараюсь и учу '
                                       'его каждый день, поэтому некоторые мои реплики могут быть неправильными '
                                       'или некорректными. А ещё я иногда веду себя как робот. Набери `/commands` '
-                                      'и всё поймёшь. Да, и не пиши мне ночью. Я сплю.', parse_mode="MARKDOWN")
+                                      'и всё поймёшь. Да, и не пиши мне ночью. Я сплю.',
+                     parse_mode="MARKDOWN")
     logging.info(f'/start: New user - {message.from_user.username}')
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def receive(call):
+    if call.data == 'dice_repeat':
+        # bot.send_message(call.message.chat.id, 'test')
+        dice(call.message)
+        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
 
 
 @bot.message_handler(commands=['hello'])
@@ -61,9 +70,13 @@ def about(message):
 
 @bot.message_handler(commands=['dice'])
 def dice(message):
-
+    markup = types.InlineKeyboardMarkup()
+    btn = types.InlineKeyboardButton(text='🎲 Кинуть кубик ещё раз', callback_data='dice_repeat')
+    markup.add(btn)
     dicenum = str(random.randint(0, 100))
-    bot.send_message(message.chat.id, f'Ты кинул кубик и тебе выпало число под номером {dicenum}!')
+    bot.send_message(message.chat.id, f'_Минако кинула 100-гранный кубик_\n'
+                                      f'Число {dicenum} показалось на его верхней грани',
+                     parse_mode='MARKDOWN', reply_markup=markup)
     logging.info(f'/dice: {message.from_user.username} got {dicenum}.')
 
 
