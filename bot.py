@@ -23,21 +23,19 @@ logging.info('<---+--->\nStarting new session')
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    # todo: ReplyKeyboard
     bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name} {message.from_user.last_name}!\n'
                                       'Я - Минако Матсушима, ученица старшей школы. Я учу русский язык уже на '
                                       'протяжении пяти лет. Хоть его я знаю плохо, но упорно стараюсь и учу '
                                       'его каждый день, поэтому некоторые мои реплики могут быть неправильными '
-                                      'или некорректными. А ещё я иногда веду себя как робот. Набери `/commands` '
-                                      'и всё поймёшь. Да, и не пиши мне ночью. Я сплю.',
-                     parse_mode="MARKDOWN")
+                                      'или некорректными. А ещё я иногда веду себя как робот. Да, и не пиши мне ночью. '
+                                      'Я сплю.\nА это весь список моих команд: ', parse_mode='MARKDOWN')
+    commands(message)
     logging.info(f'/start: New user - {message.from_user.username}')
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def receive(call):
     if call.data == 'dice_repeat':
-        # bot.send_message(call.message.chat.id, 'test')
         dice(call.message)
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
 
@@ -49,7 +47,7 @@ def greet(message):
 
 
 @bot.message_handler(commands=['commands'])
-def helpme(message):
+def commands(message):
     bot.send_message(message.chat.id, '`/commands - показывает весь список доступных команд\n`'
                                       '`/info - обо мне`\n'
                                       '`/hello - здоровается с написавшим`\n'
