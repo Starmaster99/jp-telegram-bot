@@ -4,6 +4,7 @@
 import os
 import random
 import logging
+
 import telebot
 
 from dotenv import load_dotenv
@@ -62,7 +63,8 @@ def commands(message):
                                       '`/dice - генератор случайных чисел (или D100)`\n'
                                       '`/8ball - шар предсказаний`\n\n'
                                       '`< Поиск >\n`'
-                                      '`/search - ищет информацию без помощи браузера\n\n`', parse_mode="MARKDOWN")
+                                      '`/search - поиск информации без помощи браузера\n`'
+                                      '`/yt - поиск видео на youtube.com\n`', parse_mode="MARKDOWN")
     logging.info(f'{message.from_user.username} typed /commands')
 
 
@@ -71,7 +73,7 @@ def info(message):
     bot.send_message(message.chat.id, 'Привет. Меня зовут Минако Матсушима. Я студентка старшей школы. '
                                       'Я учу русский язык уже пять лет. Мои знания не очень большие, но '
                                       'у меня много русских и украинских друзей. Я хочу практиковаться и '
-                                      'учиться больше. Давайте дружить!')
+                                      'учиться больше. Давайте дружить!\nМой день рождения: 24 июля 2004 года.')
     logging.info(f'{message.from_user.username} typed /info')
 
 
@@ -107,8 +109,7 @@ def search_func(message):
     markup = types.InlineKeyboardMarkup()                                           # инициализация кнопки
     markup.add(types.InlineKeyboardButton('⌨ Загуглить', url='google.com'))         # поиска снизу
 
-    driver.get("https://www.google.com/")                                           # переход на сайт поиска
-    search = message.text.split(" ", 1)                                             # отделение сообщения от команды
+    search = message.text.split(" ", 1)[1]                                          # отделение сообщения от команды
 
     driver.get(f"https://www.google.com/search?q={search}")                         # поиск
     searchlinkk = driver.find_element_by_xpath("//div[@class='yuRUbf']")            # получение контейнера
@@ -116,7 +117,22 @@ def search_func(message):
 
     bot.reply_to(message, 'Эта ссылка должна тебе помочь. Когда-нибудь я устану искать за вас информацию...\n'
                           f'{searchlink}', reply_markup=markup)     # выведение результата поиска и добавление кнопки
-    logging.info(f'/search: {message.from_user.username} tried to find {search}')   # логирование результата
+    logging.info(f'/search: {message.from_user.username} tried to find {search}.')   # логирование результата
+
+
+@bot.message_handler(commands=['yt'])
+def yt(message):
+
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton('▶️ Найти видео', url='https://www.youtube.com/'))
+
+    search_yt = message.text.split(" ", 1)[1]
+    driver.get(f"https://www.youtube.com/results?search_query={search_yt}")
+
+    yt_link = driver.find_element_by_xpath("//a[@id='video-title']").get_attribute("href")
+
+    bot.reply_to(message, f'Держи видео.\n{yt_link}', reply_markup=markup)
+    logging.info(f"/yt: {message.from_user.username} tried to find {search_yt} video.")
 
 
 bot.polling(none_stop=True)
