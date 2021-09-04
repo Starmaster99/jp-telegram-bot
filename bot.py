@@ -7,7 +7,7 @@ import logging
 import telebot
 
 from dotenv import load_dotenv
-from googlesearch import search
+# from googlesearch import search
 from telebot import types
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -100,18 +100,20 @@ def eightball(message):
 
 
 @bot.message_handler(commands=['search'])
-def search(message):
-    searchres = ""                                                          # без этой строчки pycharm ругается
-    query = message.text
-    markup = types.InlineKeyboardMarkup()                                   # инициализация кнопки снизу
-    markup.add(types.InlineKeyboardButton('⌨ Загуглить самостоятельно', url='google.com'))
-    for searchres in search(query, tld='com', lang='ru', num=1, stop=1):    # без этих двух строчек
-        searchres = str(searchres)                                          # оно не работает
+def search_func(message):
+
+    markup = types.InlineKeyboardMarkup()                                           # инициализация кнопки
+    markup.add(types.InlineKeyboardButton('⌨ Загуглить', url='google.com'))         # поиска снизу
+
+    driver.get("https://www.google.com/")                                           # переход на сайт поиска
+    search = message.text.split()[-1]                                               # отделение сообщения от команды
+
+    driver.get(f"https://www.google.com/search?q={search}")                         # поиск
+    searchlinkk = driver.find_element_by_xpath("//div[@class='yuRUbf']")            # получение контейнера
+    searchlink = searchlinkk.find_element_by_xpath(".//a").get_attribute("href")    # получение ссылки из контейнера
+
     bot.reply_to(message, 'Эта ссылка должна тебе помочь. Когда-нибудь я устану искать за вас информацию...\n'
-                          f'{searchres}', reply_markup=markup)              # кнопка перехода на гугл
-    logging.info(f'/search: {message.from_user.username} tried to find {message.text}')
-    # работает
-    # и на том спасибо
+                          f'{searchlink}', reply_markup=markup)     # выведение результата поиска и добавление кнопки
 
 
 bot.polling(none_stop=True)
