@@ -7,12 +7,11 @@ import logging
 import telebot
 
 from dotenv import load_dotenv
-# from googlesearch import search
 from telebot import types
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-load_dotenv()                                       # инициализация .env
+load_dotenv()   # инициализация .env
 
 logging.basicConfig(filename='log.txt', level=logging.INFO,                                             # параметры
                     format='%(asctime)s : %(levelname)s ::: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')  # логирования
@@ -28,16 +27,16 @@ chrome_options.add_argument("--headless")           # подходит для в
 driver = webdriver.Chrome(options=chrome_options)   # непосредственно запуск
 
 
-@bot.message_handler(commands=['start'])
-def start(message):
+@bot.message_handler(commands=['start'])            # декоратор команды. именно с помощью него работает функция ниже
+def start(message):                                 # инициализация функции
     bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name} {message.from_user.last_name}!\n'
                                       'Я - Минако Матсушима, ученица старшей школы. Я учу русский язык уже на '
                                       'протяжении пяти лет. Хоть его я знаю плохо, но упорно стараюсь и учу '
                                       'его каждый день, поэтому некоторые мои реплики могут быть неправильными '
                                       'или некорректными. А ещё я иногда веду себя как робот. Да, и не пиши мне ночью. '
                                       'Я сплю.\nА это весь список моих команд: ', parse_mode='MARKDOWN')
-    commands(message)
-    logging.info(f'/start: New user - {message.from_user.username}')
+    commands(message)                                                   # вызов ф-ции commands с помощью /commands
+    logging.info(f'/start: New user - {message.from_user.username}')    # логирование команды
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -53,14 +52,17 @@ def hello(message):
     logging.info(f'{message.from_user.username} typed /hello')
 
 
-@bot.message_handler(commands=['commands'])
+@bot.message_handler(commands=['help'])
 def commands(message):
-    bot.send_message(message.chat.id, '`/commands - показывает весь список доступных команд\n`'
-                                      '`/info - обо мне`\n'
+    bot.send_message(message.chat.id, '`< Общая информация >`\n'
+                                      '`/help - показывает весь список доступных команд\n`'
+                                      '`/info - обо мне`\n\n'
+                                      '`< Простейшие команды >\n`'
                                       '`/hello - здоровается с написавшим`\n'
                                       '`/dice - генератор случайных чисел (или D100)`\n'
-                                      '`/8ball - шар предсказаний`\n'
-                                      '`/search - ищет информацию без помощи браузера`', parse_mode="MARKDOWN")
+                                      '`/8ball - шар предсказаний`\n\n'
+                                      '`< Поиск >\n`'
+                                      '`/search - ищет информацию без помощи браузера\n\n`', parse_mode="MARKDOWN")
     logging.info(f'{message.from_user.username} typed /commands')
 
 
@@ -106,7 +108,7 @@ def search_func(message):
     markup.add(types.InlineKeyboardButton('⌨ Загуглить', url='google.com'))         # поиска снизу
 
     driver.get("https://www.google.com/")                                           # переход на сайт поиска
-    search = message.text.split()[-1]                                               # отделение сообщения от команды
+    search = message.text.split(" ", 1)                                             # отделение сообщения от команды
 
     driver.get(f"https://www.google.com/search?q={search}")                         # поиск
     searchlinkk = driver.find_element_by_xpath("//div[@class='yuRUbf']")            # получение контейнера
@@ -114,6 +116,7 @@ def search_func(message):
 
     bot.reply_to(message, 'Эта ссылка должна тебе помочь. Когда-нибудь я устану искать за вас информацию...\n'
                           f'{searchlink}', reply_markup=markup)     # выведение результата поиска и добавление кнопки
+    logging.info(f'/search: {message.from_user.username} tried to find {search}')   # логирование результата
 
 
 bot.polling(none_stop=True)
