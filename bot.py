@@ -9,16 +9,23 @@ import telebot
 from dotenv import load_dotenv
 from googlesearch import search
 from telebot import types
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 
-load_dotenv()
+load_dotenv()                                       # инициализация .env
 
-logging.basicConfig(filename='log.txt', level=logging.INFO,
-                    format='%(asctime)s : %(levelname)s ::: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+logging.basicConfig(filename='log.txt', level=logging.INFO,                                             # параметры
+                    format='%(asctime)s : %(levelname)s ::: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')  # логирования
 
-KEY = os.getenv('API_KEY')
-bot = telebot.TeleBot(KEY)
+KEY = os.getenv('API_KEY')                          # получение .env
+bot = telebot.TeleBot(KEY)                          # его использование
 
-logging.info('<---+--->\nStarting new session')
+logging.info('<---+--->\nStarting new session')     # логирование
+
+chrome_options = Options()                          # настройка запуска хрома в свёрнутом виде
+chrome_options.add_argument("--headless")           # подходит для всех версий
+
+driver = webdriver.Chrome(options=chrome_options)   # непосредственно запуск
 
 
 @bot.message_handler(commands=['start'])
@@ -41,7 +48,7 @@ def receive(call):
 
 
 @bot.message_handler(commands=['hello'])
-def greet(message):
+def hello(message):
     bot.reply_to(message, f'Привет, @{message.from_user.username}! Как дела?')
     logging.info(f'{message.from_user.username} typed /hello')
 
@@ -58,7 +65,7 @@ def commands(message):
 
 
 @bot.message_handler(commands=['info'])
-def about(message):
+def info(message):
     bot.send_message(message.chat.id, 'Привет. Меня зовут Минако Матсушима. Я студентка старшей школы. '
                                       'Я учу русский язык уже пять лет. Мои знания не очень большие, но '
                                       'у меня много русских и украинских друзей. Я хочу практиковаться и '
@@ -93,7 +100,7 @@ def eightball(message):
 
 
 @bot.message_handler(commands=['search'])
-def search_info(message):
+def search(message):
     searchres = ""                                                          # без этой строчки pycharm ругается
     query = message.text
     markup = types.InlineKeyboardMarkup()                                   # инициализация кнопки снизу
