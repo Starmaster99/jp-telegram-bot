@@ -1,9 +1,12 @@
 # оставь надежду всяк сюда входящий
 # todo: проверять todo перед коммитом
 
+#                                               < +++ БИБЛИОТЕКИ +++ >
+
 import os
 import random
 import logging
+import requests
 
 import telebot
 
@@ -12,11 +15,14 @@ from telebot import types
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
+#                                 < +++ ОБОЗНАЧЕНИЕ НЕОБХОДИМЫХ ПЕРЕМЕННЫХ +++ >
+
 load_dotenv()   # инициализация .env
 
 logging.basicConfig(filename='log.txt', level=logging.INFO,                                             # параметры
                     format='%(asctime)s : %(levelname)s ::: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')  # логирования
 
+telegroup = os.getenv('GROUP')
 KEY = os.getenv('API_KEY')                          # получение .env
 bot = telebot.TeleBot(KEY)                          # его использование
 
@@ -26,6 +32,19 @@ chrome_options = Options()                          # настройка зап�
 chrome_options.add_argument("--headless")           # подходит для всех версий
 
 driver = webdriver.Chrome(options=chrome_options)   # непосредственно запуск
+
+
+msg = 'Я надеюсь у вас всё хорошо 😄'               # сообщение, которое я хочу отправить в указанный чат
+
+
+def send_msg(telegroup, msg):
+    url = f'https://api.telegram.org/bot{KEY}/sendMessage?chat_id={telegroup}&text={msg}&parse_mode=HTML'
+    requests.get(url)
+
+
+send_msg(telegroup, msg)
+
+#                                           < +++ ОБРАБОТКА КОМАНД +++ >
 
 
 @bot.message_handler(commands=['start'])            # декоратор команды. именно с помощью него работает функция ниже
