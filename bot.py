@@ -34,7 +34,7 @@ chrome_options.add_argument("--headless")           # подходит для в
 driver = webdriver.Chrome(options=chrome_options)   # непосредственно запуск
 
 
-msg = 'Я надеюсь у вас всё хорошо 😄'               # сообщение, которое я хочу отправить в указанный чат
+msg = ''               # сообщение, которое я хочу отправить в указанный чат
 
 
 def send_msg(telegroup, msg):
@@ -83,7 +83,8 @@ def commands(message):
                                       '`/8ball - шар предсказаний`\n\n'
                                       '`< Поиск >\n`'
                                       '`/search - поиск информации без помощи браузера\n`'
-                                      '`/yt - поиск видео на youtube.com\n`', parse_mode="MARKDOWN")
+                                      '`/yt - поиск видео на youtube.com\n`'
+                                      '`/music - поиск музыки на sefon.pro`', parse_mode="MARKDOWN")
     logging.info(f'{message.from_user.username} typed /commands')
 
 
@@ -152,6 +153,24 @@ def yt(message):
 
     bot.reply_to(message, f'Держи видео.\n{yt_link}', reply_markup=markup)
     logging.info(f"/yt: {message.from_user.username} tried to find {search_yt} video.")
+
+
+@bot.message_handler(commands=['music'])
+def music(message):
+
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton('🎵 Найти музыку', url='https://sefon.pro/'))
+
+    search_music = message.text.split(" ", 1)[1]
+    driver.get(f"https://sefon.pro/search/?q={search_music}")
+
+    divhreff = driver.find_element_by_xpath("//div[@class='song_name']")
+    divhref = divhreff.find_element_by_xpath(".//a").get_attribute("href")
+
+    bot.reply_to(message, f'Держи песню:\n{divhref}', reply_markup=markup)
+    logging.info(f"/music: {message.from_user.username} tried to find {search_music} music.")
+
+    # todo: добавить больше данных о музыке (название, исполнитель, продолжительность) и выбор ссылки
 
 
 bot.polling(none_stop=True)
