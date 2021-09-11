@@ -7,7 +7,6 @@ import os
 import random
 import logging
 import requests
-
 import telebot
 
 from dotenv import load_dotenv
@@ -129,11 +128,14 @@ def search_func(message):
     markup = types.InlineKeyboardMarkup()                                           # инициализация кнопки
     markup.add(types.InlineKeyboardButton('⌨ Загуглить', url='google.com'))         # поиска снизу
 
+    driver.get(f"https://www.google.com/")                                          # переход на страницу поиска
+
     search = message.text.split(" ", 1)[1]                                          # отделение сообщения от команды
 
-    driver.get(f"https://www.google.com/search?q={search}")                         # поиск
-    searchlinkk = driver.find_element_by_xpath("//div[@class='yuRUbf']")            # получение контейнера
-    searchlink = searchlinkk.find_element_by_xpath(".//a").get_attribute("href")    # получение ссылки из контейнера
+    page = driver.find_element_by_xpath("//input[@class='gLFyf gsfi']")             # поиск места для ввода текста
+    page.send_keys(search)     # поиск текста
+    page.submit()              # Enter
+    searchlink = driver.find_element_by_xpath("//div[@class='yuRUbf']/a").get_attribute("href")   # получение результата
 
     bot.reply_to(message, 'Эта ссылка должна тебе помочь. Когда-нибудь я устану искать за вас информацию...\n'
                           f'{searchlink}', reply_markup=markup)     # выведение результата поиска и добавление кнопки
