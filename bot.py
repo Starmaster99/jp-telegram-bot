@@ -6,7 +6,8 @@
 import os
 import random
 import logging
-import requests
+import time
+
 import telebot
 
 from dotenv import load_dotenv
@@ -31,17 +32,6 @@ chrome_options = Options()                          # настройка зап�
 chrome_options.add_argument("--headless")           # подходит для всех версий
 
 driver = webdriver.Chrome(options=chrome_options)   # непосредственно запуск
-
-
-msg = ''               # сообщение, которое я хочу отправить в указанный чат
-
-
-def send_msg(telegroup, msg):
-    url = f'https://api.telegram.org/bot{KEY}/sendMessage?chat_id={telegroup}&text={msg}&parse_mode=HTML'
-    requests.get(url)
-
-
-send_msg(telegroup, msg)
 
 #                                           < +++ ОБРАБОТКА КОМАНД +++ >
 
@@ -139,7 +129,7 @@ def search_func(message):
 
     bot.reply_to(message, 'Эта ссылка должна тебе помочь. Когда-нибудь я устану искать за вас информацию...\n'
                           f'{searchlink}', reply_markup=markup)     # выведение результата поиска и добавление кнопки
-    logging.info(f'/search: {message.from_user.username} tried to find {search}.')   # логирование результата
+    logging.info(f'/search: {message.from_user.username} tried to find "{search}".')   # логирование результата
 
 
 @bot.message_handler(commands=['yt'])
@@ -154,7 +144,7 @@ def yt(message):
     yt_link = driver.find_element_by_xpath("//a[@id='video-title']").get_attribute("href")
 
     bot.reply_to(message, f'Держи видео.\n{yt_link}', reply_markup=markup)
-    logging.info(f"/yt: {message.from_user.username} tried to find {search_yt} video.")
+    logging.info(f"/yt: {message.from_user.username} tried to find '{search_yt}' video.")
 
 
 @bot.message_handler(commands=['music'])
@@ -166,13 +156,19 @@ def music(message):
     search_music = message.text.split(" ", 1)[1]
     driver.get(f"https://sefon.pro/search/?q={search_music}")
 
-    divhreff = driver.find_element_by_xpath("//div[@class='song_name']")
-    divhref = divhreff.find_element_by_xpath(".//a").get_attribute("href")
+    divhref = driver.find_element_by_xpath("//div[@class='song_name']/a").get_attribute("href")
+    divbtn = driver.find_element_by_xpath("//div[@class='song_name']/a").text
+    driver.find_element_by_link_text(divbtn).click()
 
-    bot.reply_to(message, f'Держи песню:\n{divhref}', reply_markup=markup)
-    logging.info(f"/music: {message.from_user.username} tried to find {search_music} music.")
+    time.sleep(1)
 
-    # todo: добавить больше данных о музыке (название, исполнитель, продолжительность) и выбор ссылки
+    divdate = driver.find_element_by_xpath("//div[@class='list']/p[1]").text
+    divformat = driver.find_element_by_xpath("//div[@class='list']/p[2]").text
+    divsize = driver.find_element_by_xpath("//div[@class='list']/p[4]").text
+    divdur = driver.find_element_by_xpath("//div[@class='list']/p[5]").text
+
+    bot.reply_to(message, f'Держи песню:\n{divhref}\n{divdate}\n{divformat}\n{divsize}\n{divdur}', reply_markup=markup)
+    logging.info(f"/music: {message.from_user.username} tried to find '{search_music}' music.")
 
 
 bot.polling(none_stop=True)
