@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 from telebot import types
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import NoSuchElementException
 
 #                                 < +++ ОБОЗНАЧЕНИЕ НЕОБХОДИМЫХ ПЕРЕМЕННЫХ +++ >
 
@@ -156,19 +157,25 @@ def music(message):
     search_music = message.text.split(" ", 1)[1]
     driver.get(f"https://sefon.pro/search/?q={search_music}")
 
-    divhref = driver.find_element_by_xpath("//div[@class='song_name']/a").get_attribute("href")
-    divbtn = driver.find_element_by_xpath("//div[@class='song_name']/a").text
-    driver.find_element_by_link_text(divbtn).click()
+    try:
 
-    time.sleep(1)
+        divhref = driver.find_element_by_xpath("//div[@class='song_name']/a").get_attribute("href")
+        divclickable = driver.find_element_by_xpath("//div[@class='song_name']/a").text
+        driver.find_element_by_link_text(divclickable).click()
 
-    divdate = driver.find_element_by_xpath("//div[@class='list']/p[1]").text
-    divformat = driver.find_element_by_xpath("//div[@class='list']/p[2]").text
-    divsize = driver.find_element_by_xpath("//div[@class='list']/p[4]").text
-    divdur = driver.find_element_by_xpath("//div[@class='list']/p[5]").text
+        time.sleep(1)
 
-    bot.reply_to(message, f'Держи песню:\n{divhref}\n{divdate}\n{divformat}\n{divsize}\n{divdur}', reply_markup=markup)
-    logging.info(f"/music: {message.from_user.username} tried to find '{search_music}' music.")
+        date = driver.find_element_by_xpath("//div[@class='list']/p[1]").text
+        form = driver.find_element_by_xpath("//div[@class='list']/p[2]").text
+        size = driver.find_element_by_xpath("//div[@class='list']/p[4]").text
+        dur = driver.find_element_by_xpath("//div[@class='list']/p[5]").text
+
+        bot.reply_to(message, f'Держи песню:\n{divhref}\n{date}\n{form}\n{size}\n{dur}', reply_markup=markup)
+        logging.info(f"/music: {message.from_user.username} tried to find '{search_music}' music.")
+
+    except NoSuchElementException:
+
+        bot.reply_to(message, f'Я не смогла найти эту песню 🙁\nПопробуй найти сам', reply_markup=markup)
 
 
 bot.polling(none_stop=True)
