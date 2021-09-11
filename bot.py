@@ -153,6 +153,8 @@ def music(message):
 
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton('🎵 Найти музыку', url='https://sefon.pro/'))
+    markup.add(types.InlineKeyboardButton('▶️ Найти клип', url='https://www.youtube.com/'))
+    markup.add(types.InlineKeyboardButton('⌨ Искать музыку по всему интернету', url='https://google.com/'))
 
     search_music = message.text.split(" ", 1)[1]
     driver.get(f"https://sefon.pro/search/?q={search_music}")
@@ -175,7 +177,8 @@ def music(message):
 
     except NoSuchElementException:
 
-        bot.reply_to(message, f'Я не смогла найти эту песню 🙁\nПопробуй найти сам', reply_markup=markup)
+        bot.reply_to(message, f'Я не смогла найти эту песню 🙁\nПопробуй найти сам. '
+                              'Ты также можешь воспользоваться /search и /yt.', reply_markup=markup)
 
 
 bot.polling(none_stop=True)
