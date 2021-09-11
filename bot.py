@@ -1,5 +1,6 @@
 # оставь надежду всяк сюда входящий
-# todo: проверять todo перед коммитом
+# todo: добавить переводчик и что-то ещё
+# в последнее время мне всё труднее и труднее ориентироваться в собственном коде. всё такое цветастое и выделенное...
 
 #                                               < +++ БИБЛИОТЕКИ +++ >
 
@@ -36,6 +37,8 @@ driver = webdriver.Chrome(options=chrome_options)   # непосредствен
 
 #                                           < +++ ОБРАБОТКА КОМАНД +++ >
 
+#                                               < +++ START +++ >
+
 
 @bot.message_handler(commands=['start'])            # декоратор команды. именно с помощью него работает функция ниже
 def start(message):                                 # инициализация функции
@@ -49,6 +52,9 @@ def start(message):                                 # инициализация
     logging.info(f'/start: New user - {message.from_user.username}')    # логирование команды
 
 
+#                                           < +++ RECEIVE(CALL) +++ >
+
+
 @bot.callback_query_handler(func=lambda call: True)
 def receive(call):
     if call.data == 'dice_repeat':
@@ -56,10 +62,16 @@ def receive(call):
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
 
 
+#                                             < +++ HELLO +++ >
+
+
 @bot.message_handler(commands=['hello'])
 def hello(message):
     bot.reply_to(message, f'Привет, @{message.from_user.username}! Как дела?')
     logging.info(f'{message.from_user.username} typed /hello')
+
+
+#                                             < +++ HELP +++ >
 
 
 @bot.message_handler(commands=['help'])
@@ -75,7 +87,10 @@ def commands(message):
                                       '`/search - поиск информации без помощи браузера\n`'
                                       '`/yt - поиск видео на youtube.com\n`'
                                       '`/music - поиск музыки на sefon.pro`', parse_mode="MARKDOWN")
-    logging.info(f'{message.from_user.username} typed /commands')
+    logging.info(f'{message.from_user.username} typed /help')
+
+
+#                                             < +++ INFO +++ >
 
 
 @bot.message_handler(commands=['info'])
@@ -85,6 +100,9 @@ def info(message):
                                       'у меня много русских и украинских друзей. Я хочу практиковаться и '
                                       'учиться больше. Давайте дружить!\nМой день рождения: 24 июля 2004 года.')
     logging.info(f'{message.from_user.username} typed /info')
+
+
+#                                             < +++ DICE +++ >
 
 
 @bot.message_handler(commands=['dice'])
@@ -97,6 +115,9 @@ def dice(message):
                                       f'Число {dicenum} показалось на его верхней грани',
                      parse_mode='MARKDOWN', reply_markup=markup)
     logging.info(f'/dice: {message.from_user.username} got {dicenum}.')
+
+
+#                                            < +++ 8BALL +++ >
 
 
 @bot.message_handler(commands=['8ball'])
@@ -113,15 +134,22 @@ def eightball(message):
     logging.info(f'/8ball: {message.from_user.username} typed {message.text} and got "{randomphrase}" phrase.')
 
 
+#                                           < +++ SEARCH +++ >
+
+
 @bot.message_handler(commands=['search'])
 def search_func(message):
 
     markup = types.InlineKeyboardMarkup()                                           # инициализация кнопки
     markup.add(types.InlineKeyboardButton('⌨ Загуглить', url='google.com'))         # поиска снизу
 
-    driver.get(f"https://www.google.com/")                                          # переход на страницу поиска
+    try:                                                                            # проверка на наличие сообщения
+        search = message.text.split(" ", 1)[1]                                      # отделение сообщения от команды
+    except IndexError:
+        bot.reply_to(message, 'Пожалуйста, введи текст для поиска! Не беспокой меня по пустякам!\n')
+        return
 
-    search = message.text.split(" ", 1)[1]                                          # отделение сообщения от команды
+    driver.get(f"https://www.google.com/")  # переход на страницу поиска
 
     page = driver.find_element_by_xpath("//input[@class='gLFyf gsfi']")             # поиск места для ввода текста
     page.send_keys(search)     # поиск текста
@@ -133,19 +161,30 @@ def search_func(message):
     logging.info(f'/search: {message.from_user.username} tried to find "{search}".')   # логирование результата
 
 
+#                                             < +++ YT +++ >
+
+
 @bot.message_handler(commands=['yt'])
 def yt(message):
 
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton('▶️ Найти видео', url='https://www.youtube.com/'))
 
-    search_yt = message.text.split(" ", 1)[1]
+    try:
+        search_yt = message.text.split(" ", 1)[1]
+    except IndexError:
+        bot.reply_to(message, 'Пожалуйста, введи текст для поиска! Не беспокой меня по пустякам!\n')
+        return
+
     driver.get(f"https://www.youtube.com/results?search_query={search_yt}")
 
     yt_link = driver.find_element_by_xpath("//a[@id='video-title']").get_attribute("href")
 
     bot.reply_to(message, f'Держи видео.\n{yt_link}', reply_markup=markup)
     logging.info(f"/yt: {message.from_user.username} tried to find '{search_yt}' video.")
+
+
+#                                           < +++ MUSIC +++ >
 
 
 @bot.message_handler(commands=['music'])
@@ -156,7 +195,11 @@ def music(message):
     markup.add(types.InlineKeyboardButton('▶️ Найти клип', url='https://www.youtube.com/'))
     markup.add(types.InlineKeyboardButton('⌨ Искать музыку по всему интернету', url='https://google.com/'))
 
-    search_music = message.text.split(" ", 1)[1]
+    try:
+        search_music = message.text.split(" ", 1)[1]
+    except IndexError:
+        bot.reply_to(message, 'Пожалуйста, введи текст для поиска! Не беспокой меня по пустякам!\n')
+        return
     driver.get(f"https://sefon.pro/search/?q={search_music}")
 
     try:
@@ -179,6 +222,8 @@ def music(message):
 
         bot.reply_to(message, f'Я не смогла найти эту песню 🙁\nПопробуй найти сам. '
                               'Ты также можешь воспользоваться /search и /yt.', reply_markup=markup)
+        logging.info(f"/music: {message.from_user.username} didn't succeed in searching for '{search_music}' music")
 
 
-bot.polling(none_stop=True)
+if __name__ == "__main__":
+    bot.polling(none_stop=True)
