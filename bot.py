@@ -1,5 +1,5 @@
 # оставь надежду всяк сюда входящий
-# todo: добавить переводчик и что-то ещё
+# todo: добавить комменатрии к /translate и что-то ещё
 # в последнее время мне всё труднее и труднее ориентироваться в собственном коде. всё такое цветастое и выделенное...
 
 #                                               < +++ БИБЛИОТЕКИ +++ >
@@ -85,7 +85,8 @@ def commands(message):
                                       '`< Поиск >\n`'
                                       '`/search - поиск информации без помощи браузера\n`'
                                       '`/yt - поиск видео на youtube.com\n`'
-                                      '`/music - поиск музыки на sefon.pro`', parse_mode="MARKDOWN")
+                                      '`/music - поиск музыки на sefon.pro\n`'
+                                      '`/translate, /tr - перевод текста`', parse_mode="MARKDOWN")
     logging.info(f'{message.from_user.username} typed /help')
 
 
@@ -223,20 +224,19 @@ def music(message):
 
         bot.reply_to(message, f'Я не смогла найти эту песню 🙁\nПопробуй найти сам. '
                               'Ты также можешь воспользоваться /search и /yt.', reply_markup=markup)
-        logging.info(f"/music: {message.from_user.username} didn't succeed in searching for '{search_music}' music")
+        logging.info(f"/music: {message.from_user.username} didn't succeed in searching for '{search_music}' music.")
 
 
 #                                       < +++ TRANSLATE +++ >
 
 
-@bot.message_handler(commands=['translate'])
+@bot.message_handler(commands=['translate', 'tr'])
 def translate(message):
 
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton('📖 Перевести', url='https://translate.google.com/'))
 
     try:
-        lang = message.text.split(" ")
+        lang = message.text.split(" ", 3)
         first_lang = lang[1]
         second_lang = lang[2]
         text_to_tr = lang[3]
@@ -245,20 +245,38 @@ def translate(message):
                               'нужно перевести, например en. Не беспокой меня по пустякам!\n')
         return
 
-    driver.get(f'https://translate.google.com/?hl=ru&sl={first_lang}&tl={second_lang}&text={text_to_tr}&op=translate')
+    driver.get(f'https://translate.google.com/?hl=ru&sl={first_lang}&tl={second_lang}&op=translate')
 
-    time.sleep(0.7)
+    input_field = driver.find_element_by_xpath("//textarea[@class='er8xn']")
+    input_field.send_keys(text_to_tr)
 
-    tr_text = driver.find_element_by_xpath("//span[@class='VIiyi']/span/span").text
+    driver.implicitly_wait(1)
+
+    try:
+        tr_text = driver.find_element_by_xpath("//span[@class='VIiyi']/span/span").text
+    except NoSuchElementException:
+        bot.reply_to(message, "Хмм... Мне надо подумать...")
+        driver.implicitly_wait(5)
+        tr_text = driver.find_element_by_xpath("//span[@class='VIiyi']/span/span").text
+
+    driver.implicitly_wait(1)
 
     try:
         transcript = driver.find_element_by_xpath("//div[@class='UdTY9 BwTYAc Yb6eTe']/div").text
     except NoSuchElementException:
         transcript = "<отсутствует>"
 
+    # господи прости мне 3 строки ниже. более неудобных строчек я ещё не писал
+    markup.add(types.InlineKeyboardButton('📖 Перевести',
+                                          url=f'https://translate.google.com/?hl=ru&sl={first_lang}&tl={second_lang}'
+                                              f'&text={text_to_tr}&op=translate'))
+
     bot.reply_to(message, f'_Минако открывает словарь_\nАх да! Вот перевод твоего слова: \n"{tr_text}".\nЕго '
                           f'транскрипция: \n"{transcript}"',
                  parse_mode="MARKDOWN", reply_markup=markup)
+
+    logging.info(f"/tr: {message.from_user.username} tried to translate '{text_to_tr}' from '{first_lang}' to"
+                 f" '{second_lang}' and got '{tr_text}' text.")
 
 
 if __name__ == "__main__":
