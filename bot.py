@@ -32,7 +32,7 @@ logging.info('<---+--->\nStarting new session')     # логирование
 chrome_options = Options()                          # настройка запуска хрома в свёрнутом виде
 chrome_options.add_argument("--headless")           # подходит для всех версий
 
-driver = webdriver.Chrome(options=chrome_options)   # непосредственно запуск
+driver = webdriver.Chrome()#options=chrome_options)   # непосредственно запуск
 
 #                                           < +++ ОБРАБОТКА КОМАНД +++ >
 
@@ -233,7 +233,7 @@ def music(message):
 def translate(message):
 
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton('📖 Перевести самостоятельно', url='https://translate.google.com/'))
+    markup.add(types.InlineKeyboardButton('📖 Перевести', url='https://translate.google.com/'))
 
     try:
         lang = message.text.split(" ")
@@ -248,9 +248,12 @@ def translate(message):
     driver.get(f'https://translate.google.com/?hl=ru&sl={first_lang}&tl={second_lang}&text={text_to_tr}&op=translate')
 
     time.sleep(0.5)
-    tr_text = driver.find_element_by_xpath("//span[@class='VIiyi']/span/span").text
 
-    bot.reply_to(message, f'_Минако открывает словарь_\nАх да! Вот перевод твоего слова: \n"{tr_text}"',
+    tr_text = driver.find_element_by_xpath("//span[@class='VIiyi']/span/span").text
+    transcript = driver.find_element_by_xpath("//div[@class='UdTY9 BwTYAc Yb6eTe']/div").text
+
+    bot.reply_to(message, f'_Минако открывает словарь_\nАх да! Вот перевод твоего слова: \n"{tr_text}".\nА вот его '
+                          f'транскрипция: \n"{transcript}"',
                  parse_mode="MARKDOWN", reply_markup=markup)
 
 
