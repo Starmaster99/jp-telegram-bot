@@ -8,7 +8,6 @@ import os
 import random
 import logging
 import time
-
 import telebot
 
 from dotenv import load_dotenv
@@ -200,6 +199,7 @@ def music(message):
     except IndexError:
         bot.reply_to(message, 'Пожалуйста, введи текст для поиска! Не беспокой меня по пустякам!\n')
         return
+
     driver.get(f"https://sefon.pro/search/?q={search_music}")
 
     try:
@@ -210,10 +210,11 @@ def music(message):
 
         time.sleep(1)
 
-        date = driver.find_element_by_xpath("//div[@class='list']/p[1]").text
-        form = driver.find_element_by_xpath("//div[@class='list']/p[2]").text
-        size = driver.find_element_by_xpath("//div[@class='list']/p[4]").text
-        dur = driver.find_element_by_xpath("//div[@class='list']/p[5]").text
+        div = driver.find_elements_by_xpath("//div[@class='list']/p")
+        date = div[1].text
+        form = div[2].text
+        size = div[4].text
+        dur = div[5].text
 
         bot.reply_to(message, f'Держи песню:\n{divhref}\n{date}\n{form}\n{size}\n{dur}', reply_markup=markup)
         logging.info(f"/music: {message.from_user.username} tried to find '{search_music}' music.")
@@ -223,6 +224,34 @@ def music(message):
         bot.reply_to(message, f'Я не смогла найти эту песню 🙁\nПопробуй найти сам. '
                               'Ты также можешь воспользоваться /search и /yt.', reply_markup=markup)
         logging.info(f"/music: {message.from_user.username} didn't succeed in searching for '{search_music}' music")
+
+
+#                                       < +++ TRANSLATE +++ >
+
+
+@bot.message_handler(commands=['translate'])
+def translate(message):
+
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton('📖 Перевести самостоятельно', url='https://translate.google.com/'))
+
+    try:
+        lang = message.text.split(" ")
+        first_lang = lang[1]
+        second_lang = lang[2]
+        text_to_tr = lang[3]
+    except IndexError:
+        bot.reply_to(message, 'Пожалуйста, сначала введи язык текста, например ru, а потом язык, на который текст '
+                              'нужно перевести, например en. Не беспокой меня по пустякам!\n')
+        return
+
+    driver.get(f'https://translate.google.com/?hl=ru&sl={first_lang}&tl={second_lang}&text={text_to_tr}&op=translate')
+
+    time.sleep(0.5)
+    tr_text = driver.find_element_by_xpath("//span[@class='VIiyi']/span/span").text
+
+    bot.reply_to(message, f'_Минако открывает словарь_\nАх да! Вот перевод твоего слова: \n"{tr_text}"',
+                 parse_mode="MARKDOWN", reply_markup=markup)
 
 
 if __name__ == "__main__":
